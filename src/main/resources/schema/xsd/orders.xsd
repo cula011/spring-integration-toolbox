@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.cula011.org/springintegration"
+           targetNamespace="http://www.cula011.org/springintegration">
+
+    <xs:element name="Order" type="OrderRequestType"/>
+    <xs:element name="Item" type="ItemType"/>
+
+    <xs:complexType name="OrderRequestType">
+        <xs:sequence>
+            <xs:element ref="Item" minOccurs="1" maxOccurs="unbounded"/>
+            <xs:element name="ShippingAddress" type="AddressType" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+        <xs:attribute name="OrderId" type="xs:int" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="ItemType">
+        <xs:sequence>
+            <xs:element name="Id" type="xs:int"/>
+            <xs:element name="Name" type="xs:string"/>
+            <xs:element name="Description" type="xs:string"/>
+            <xs:element name="Cost" type="xs:double"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="AddressType">
+        <xs:sequence>
+            <xs:element name="Name" type="xs:string"/>
+            <xs:element name="Address" type="xs:string"/>
+            <xs:element name="City" type="xs:string"/>
+            <xs:element name="Country" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

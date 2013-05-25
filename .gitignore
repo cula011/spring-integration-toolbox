@@ -1,0 +1,4 @@
+.idea/
+spring-integration-toolbox.iml
+target/
+activemq-data/

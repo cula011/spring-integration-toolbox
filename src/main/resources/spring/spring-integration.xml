@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:integration="http://www.springframework.org/schema/integration"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+            http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+
+    <integration:channel id="orderInChannel" datatype="org.cula011.springintegration.OrderRequestType">
+        <integration:interceptors>
+            <integration:wire-tap channel="logger"/>
+        </integration:interceptors>
+    </integration:channel>
+
+    <integration:channel id="itemChannel" datatype="org.cula011.springintegration.ItemType">
+        <integration:interceptors>
+            <integration:wire-tap channel="logger"/>
+        </integration:interceptors>
+    </integration:channel>
+
+    <integration:channel id="orderOutChannel" datatype="org.cula011.springintegration.OrderRequestType">
+        <integration:interceptors>
+            <integration:wire-tap channel="logger"/>
+        </integration:interceptors>
+    </integration:channel>
+
+    <!-- Data Source -->
+    <jdbc:embedded-database id="dataSource" type="HSQL"/>
+
+    <jdbc:initialize-database data-source="dataSource">
+        <jdbc:script location="sql/schema-hsqldb.sql"/>
+    </jdbc:initialize-database>
+
+    <bean id="persistentMessageStore" class="org.springframework.integration.jdbc.JdbcMessageStore">
+        <constructor-arg ref="dataSource"/>
+    </bean>
+
+    <!-- Split each Order into its Item(s) TODO: I'm loosing the Address at the moment.-->
+    <!-- Option 1: When dealing with JAXB objects. -->
+    <integration:splitter input-channel="orderInChannel" output-channel="itemChannel" expression="payload.item"/>
+
+    <!-- Option 2: When dealing with text messages. (i.e. XML string value)
+    <integration-xml:xpath-splitter input-channel="orderInChannel" output-channel="itemChannel">
+        <integration-xml:xpath-expression expression="//si:Item" ns-prefix="si"
+                                          ns-uri="http://www.cula011.org/springintegration"/>
+    </integration-xml:xpath-splitter>
+    -->
+
+    <!-- TODO: Break up the items into separate channels for some minor transformations depending on item type.
+    <integration:recipient-list-router id="itemRouter" input-channel="itemChannel">
+        <integration:recipient channel="" selector-expression=""/>
+    </integration:recipient-list-router>
+    -->
+
+    <!-- Aggregate  processed Item(s) into a finalised Order and publish them -->
+    <integration:aggregator auto-startup="true" message-store="persistentMessageStore"
+                            input-channel="itemChannel" output-channel="orderOutChannel">
+        <bean class="org.cula011.springintegration.aggregate.OrderItemAggregator"/>
+    </integration:aggregator>
+
+    <!-- Supporting elements (e.g. Loggers) -->
+    <integration:logging-channel-adapter id="logger" level="INFO" log-full-message="true"/>
+
+</beans>

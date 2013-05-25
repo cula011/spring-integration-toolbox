@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:integration-jms="http://www.springframework.org/schema/integration/jms"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                          http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
+
+    <import resource="jms-infrastructure.xml"/>
+    <import resource="spring-integration.xml"/>
+
+    <integration-jms:message-driven-channel-adapter auto-startup="true" destination="orderInQueue"
+                                                    connection-factory="cachingConnectionFactory" concurrent-consumers="1"
+                                                    channel="orderInChannel"/>
+
+    <integration-jms:outbound-channel-adapter auto-startup="true" channel="orderOutChannel" destination="orderOutQueue"
+                                              connection-factory="cachingConnectionFactory"/>
+
+</beans>
